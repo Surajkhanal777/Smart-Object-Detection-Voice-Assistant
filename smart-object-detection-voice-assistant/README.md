@@ -1,25 +1,115 @@
-# Smart Object Detection with Voice Summary for the Visually Impaired
+<div align="center">
 
-A Python computer-vision prototype that uses YOLOv8 and OpenCV to detect common objects in a camera feed, describe their approximate left/center/right positions, and provide spoken scene summaries.
+# 🔎 Smart Object Detection with Voice Summary
 
-## Features
+### An AI-powered visual assistant that describes detected objects aloud
 
-- YOLOv8 Nano object detection with bounding boxes and confidence scores
-- Scene summaries that count detected objects and describe approximate positions
-- Text-to-speech feedback using `pyttsx3`
-- Flask dashboard with a video stream and camera controls
-- Laptop webcam support, with optional mobile/IP camera support (configure the stream URL in the source first)
+<p>
+  <a href="https://github.com/Surajkhanal777/Smart-Object-Detection-Voice-Assistant"><img src="https://img.shields.io/github/stars/Surajkhanal777/Smart-Object-Detection-Voice-Assistant?style=for-the-badge&logo=github&label=Stars" alt="GitHub stars"></a>
+  <a href="https://github.com/Surajkhanal777/Smart-Object-Detection-Voice-Assistant/issues"><img src="https://img.shields.io/github/issues/Surajkhanal777/Smart-Object-Detection-Voice-Assistant?style=for-the-badge&logo=github" alt="GitHub issues"></a>
+  <a href="https://github.com/Surajkhanal777/Smart-Object-Detection-Voice-Assistant"><img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"></a>
+  <img src="https://img.shields.io/badge/YOLOv8-Object%20Detection-8A2BE2?style=for-the-badge" alt="YOLOv8">
+  <img src="https://img.shields.io/badge/OpenCV-Computer%20Vision-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white" alt="OpenCV">
+  <img src="https://img.shields.io/badge/Flask-Web%20Dashboard-000000?style=for-the-badge&logo=flask&logoColor=white" alt="Flask">
+</p>
 
-## Requirements
+**Project:** [Surajkhanal777/Smart-Object-Detection-Voice-Assistant](https://github.com/Surajkhanal777/Smart-Object-Detection-Voice-Assistant) · **Focus:** AI/ML · Computer Vision · Accessibility
 
-- Python 3.10 or 3.11 is recommended for compatibility with the pinned dependencies
-- Git
-- A webcam for laptop-camera mode
-- Microphone and speakers/headphones for voice interaction
+</div>
 
-Camera and audio features may behave differently across Windows, macOS, and Linux. `SpeechRecognition` uses Google's online speech-recognition service in the current implementation, so voice input requires internet access. The speech output currently uses local `pyttsx3`; this project does not currently use Hugging Face TTS.
+---
 
-## Setup (Windows PowerShell)
+## 🌟 Overview
+
+**Smart Object Detection with Voice Summary** is a Python-based assistive prototype designed to make camera scenes easier to understand through audio. It uses a camera feed and the lightweight **YOLOv8 Nano** model to identify supported objects, estimate their horizontal position (**left, center, or right**), and turn the detections into a short text summary. A text-to-speech engine can then read the summary aloud.
+
+The project is intended as a learning prototype and an accessibility aid. It is **not a certified mobility or obstacle-avoidance system** and should not be used as the sole source of navigation or safety information.
+
+## ✨ Key Features
+
+- 🎯 **Real-time object detection** with Ultralytics YOLOv8 Nano (`yolov8n.pt`).
+- 📍 **Approximate position cues** — left, center, and right based on the object's bounding-box center.
+- 🧠 **Readable scene summaries** that group repeated object labels and include position information.
+- 🔊 **Voice feedback** using local `pyttsx3` text-to-speech.
+- 🎥 **Camera options** for a laptop webcam and a configurable mobile/IP camera feed.
+- 🖥️ **Flask dashboard** for starting/stopping camera processing, switching camera mode, toggling voice, and viewing detections.
+- 🧩 **Modular Python code** separating detection, description, voice input/output, and web serving.
+
+> **Implementation note:** The repository code currently uses template/rule-based descriptions in `description_nlp.py` and `pyttsx3` for speech output. Voice camera selection uses `SpeechRecognition` with Google's online recognition service, so that voice-input feature requires internet access. Hugging Face TTS / transformer-based caption generation are discussed in the training report as possible/target technologies, but are **not the current implementation in this repository**.
+
+## 🖼️ Project Preview
+
+### System workflow
+
+The diagram below is taken from the project training report. The implemented code follows the same broad visual-to-audio flow, with rule-based sentence generation and `pyttsx3` speech output.
+
+<div align="center">
+  <img src="screenshots/system-architecture.jpg" alt="System workflow: camera feed, YOLOv8 object detection, object position extraction, description generation, text-to-speech and audio output" width="85%">
+</div>
+
+### Detection examples
+
+These are screenshots captured during project testing and included in the training report. They illustrate detections; results can vary with lighting, distance, camera quality, and model confidence.
+
+<table>
+  <tr>
+    <td align="center" width="33%"><img src="screenshots/bottle-detection.jpg" alt="YOLOv8 bounding box around a bottle" width="100%"><br><b>🧴 Bottle detection</b></td>
+    <td align="center" width="33%"><img src="screenshots/mobile-phone-detection.jpg" alt="YOLOv8 bounding box around a mobile phone" width="100%"><br><b>📱 Mobile phone detection</b></td>
+    <td align="center" width="33%"><img src="screenshots/cup-detection.jpg" alt="YOLOv8 bounding box around a cup" width="100%"><br><b>☕ Cup detection</b></td>
+  </tr>
+</table>
+
+## ⚙️ How It Works
+
+```mermaid
+flowchart TD
+    A[📷 Camera input] --> B[🧠 YOLOv8 Nano detection]
+    B --> C[📦 Labels, confidence and bounding boxes]
+    C --> D[📍 Left / center / right position]
+    D --> E[📝 Rule-based scene summary]
+    E --> F[🔊 pyttsx3 text-to-speech]
+    F --> G[👂 Spoken feedback]
+```
+
+1. **Capture:** OpenCV reads frames from the selected camera.
+2. **Detect:** YOLOv8 predicts supported object classes, confidence scores, and bounding boxes.
+3. **Locate:** The horizontal center of each bounding box is mapped to left, center, or right.
+4. **Summarize:** Python logic counts repeated labels and builds a concise description.
+5. **Speak:** `pyttsx3` speaks the description; the dashboard can also display detections and status.
+
+## 🧰 Tech Stack
+
+| Technology | Role in this repository |
+|---|---|
+| 🐍 Python | Application logic and integration |
+| 🎯 Ultralytics YOLOv8 Nano | Pre-trained object detection |
+| 👁️ OpenCV | Camera capture, frame processing, and drawing bounding boxes |
+| 🔢 NumPy | Image byte/frame handling |
+| 🗣️ `pyttsx3` | Local text-to-speech output |
+| 🎙️ `SpeechRecognition` + PyAudio | Voice input for camera selection in the CLI workflow |
+| 🌐 Flask + Flask-CORS | Web dashboard and JSON endpoints |
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
+
+- Python **3.10 or 3.11** is recommended for the pinned dependency versions.
+- Git and `pip`.
+- A webcam, or a reachable mobile/IP-camera image endpoint.
+- Speakers/headphones for voice output; a microphone for voice-based camera selection.
+
+> **Windows audio note:** PyAudio installation can depend on your Python version and system setup. If `pip install -r requirements.txt` fails at PyAudio, install a compatible PyAudio wheel/package for your Python version and retry.
+
+### 2. Clone the repository
+
+```bash
+git clone https://github.com/Surajkhanal777/Smart-Object-Detection-Voice-Assistant.git
+cd Smart-Object-Detection-Voice-Assistant/smart-object-detection-voice-assistant
+```
+
+### 3. Create a virtual environment
+
+**Windows PowerShell**
 
 ```powershell
 py -3.11 -m venv .venv
@@ -28,61 +118,117 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-If the `py -3.11` command is unavailable, install Python 3.11 first or use another supported Python version after adjusting dependencies.
+**macOS / Linux**
 
-## Run the web dashboard
-
-```powershell
-python web_server.py
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt
 ```
 
-Then open <http://127.0.0.1:5000> in your browser. Allow camera and microphone access if prompted. The Flask server must run on the same computer that can access the webcam; a hosted server generally cannot directly access your personal computer's webcam or speakers.
+### 4. Run the command-line application
 
-## Run the command-line camera workflow
-
-```powershell
+```bash
 python main.py
 ```
 
-This workflow uses microphone input to choose a camera mode. If you prefer not to use voice input, the source code will need a small change to select the camera by configuration or keyboard input.
+The CLI workflow asks for camera selection by voice. Press **`q`** in the OpenCV window to exit the camera loop.
 
-## Mobile/IP camera
+### 5. Run the Flask dashboard
 
-The mobile camera stream URL is configured in `main.py` and `web_server.py`. Update the placeholder/current address to the URL provided by your IP-camera app. Ensure the phone and computer are on the same network and the stream is reachable. Do not publish a private camera URL or credentials in this public repository.
+```bash
+python web_server.py
+```
 
-## Model weights
+Then open [http://127.0.0.1:5000](http://127.0.0.1:5000) on the same computer. Use the dashboard controls to start/stop the camera and toggle voice output.
 
-The repository includes `yolov8n.pt` (YOLOv8 Nano weights). Keep the file in the project root because `object_detector.py` loads it by filename.
+## 📱 Configure a Mobile / IP Camera
 
-## Reported performance
+The current source contains a local camera endpoint in `main.py` and `web_server.py`. Before using mobile-camera mode:
 
-The project report describes approximately 85% detection accuracy, 0.12-second latency per frame, and 12–15 FPS on CPU. These are reported project figures and have not been independently reproduced as part of this repository preparation. For a rigorous evaluation, report the dataset, hardware, confidence threshold, precision/recall or mAP, and timing methodology.
+1. Find the image/stream URL provided by your IP-camera app.
+2. Update the configured URL in the relevant source file(s).
+3. Ensure the phone and computer are on the same network and the endpoint is reachable.
+4. Keep private camera URLs, tokens, and credentials out of commits and screenshots.
 
-## Limitations and safety
+The mobile camera URL is currently hard-coded in source; making it an environment variable is a useful next improvement.
 
-- Object detection can miss objects or misclassify scenes; do not rely on it as the sole navigation or obstacle-avoidance aid.
-- The current description is based on detected object labels and rough horizontal positions; it does not estimate distance or guarantee safe paths.
-- Real-time performance depends on CPU/GPU, camera resolution, and environment.
-- Mobile camera mode requires the correct local stream URL.
+## 📊 Reported Performance
 
-## Project structure
+The short-term training report records the following figures from project testing:
+
+| Metric | Figure reported in the report |
+|---|---:|
+| Object detection accuracy | ~85% |
+| Processing latency | ~0.12 seconds per frame |
+| Additional audio delay | ~0.1 seconds |
+| CPU processing speed | ~12–15 FPS |
+| Speech clarity / understandability | ~92% |
+
+**Please interpret these as report-reported results, not independently reproduced benchmark results.** The report does not provide enough detail about the test-set size, ground-truth labeling, hardware specification, repeated runs, or the calculation method to independently verify the metrics. Performance will vary by hardware, scene, lighting, camera resolution, and model configuration. A stronger benchmark should record precision, recall, mAP, per-stage latency, hardware details, and the evaluation dataset.
+
+## 🗂️ Project Structure
 
 ```text
-.
-├── main.py
-├── object_detector.py
-├── description_nlp.py
-├── voice_input.py
-├── tts_speaker.py
-├── web_server.py
+smart-object-detection-voice-assistant/
+├── main.py                  # Command-line camera workflow
+├── object_detector.py       # YOLOv8 inference and position extraction
+├── description_nlp.py       # Rule-based scene summary generation
+├── voice_input.py           # Microphone input / speech recognition
+├── tts_speaker.py           # pyttsx3 speech output
+├── web_server.py            # Flask dashboard and API endpoints
 ├── templates/
-│   └── index.html
-├── yolov8n.pt
+│   └── index.html           # Dashboard page
+├── yolov8n.pt               # YOLOv8 Nano model weights
 ├── requirements.txt
 ├── .gitignore
 └── README.md
+├── screenshots/
+│   └── bottle-detection.jpg
+│   └── cup-detection.jpg
+│   └── mobile-phone-detection.jpg
+│   └── system-architecture.jpg
+│   └── Testing with an Elephant photo to recognize.jpg
+│   └── Testing for car recognition.jpg
 ```
 
-## License
+## ⚠️ Limitations & Responsible Use
 
-Add a license only after deciding how you want others to use and redistribute your code. Check the license terms for the included model weights and all dependencies before publishing.
+- The model is pre-trained on common object categories; it may not recognize unfamiliar or specialized objects.
+- The position cue describes **horizontal image location only**. It does not estimate distance, detect drop-offs, or calculate a safe route.
+- Objects can be missed or mislabeled, especially in poor lighting, clutter, occlusion, or motion.
+- The CLI voice-recognition path uses an online Google service and may fail without internet access.
+- Speech synthesis depends on the local operating system's available voices and audio setup.
+- The Flask development server and current permissive CORS configuration are not hardened for public deployment. Run locally on a trusted network; do not expose it directly to the internet without adding authentication, restricting CORS, and reviewing network binding and camera access.
+- This is a prototype, not a replacement for a cane, guide dog, orientation-and-mobility training, or other established accessibility support.
+
+## 🛣️ Roadmap
+
+- [ ] Move camera URLs and runtime settings into environment/configuration variables.
+- [ ] Add unit tests for position extraction and description generation.
+- [ ] Restrict CORS and add authentication before any network-facing deployment.
+- [ ] Add repeatable evaluation scripts and document the test dataset/hardware.
+- [ ] Improve description grammar and reduce repeated spoken announcements.
+- [ ] Explore multilingual/offline speech options and optimized edge-device deployment.
+- [ ] Add depth estimation only after a suitable sensor/model and evaluation plan are selected.
+
+## 🤝 Contributing
+
+Suggestions and bug reports are welcome. Please open an [issue](https://github.com/Surajkhanal777/Smart-Object-Detection-Voice-Assistant/issues) with steps to reproduce a problem, your operating system, Python version, and relevant error logs. Remove private camera URLs and personal information before sharing logs.
+
+## 📜 License
+
+This project is licensed under the MIT License. You are free to use, copy, modify, and distribute this software, subject to the terms and conditions of the license.
+
+See the LICENSE file for the full license text.
+
+---
+
+<div align="center">
+
+### 💙 Built to explore how computer vision can make technology more accessible
+
+If this project helps your learning, consider ⭐ starring the repository and sharing constructive feedback.
+
+</div>

@@ -84,7 +84,7 @@ def main():
 
     if use_mobile_camera:
         # Setting mobile camera IP webcam URL (update IP as needed)
-        url = "http://192.168.1.48:8080/shot.jpg"
+        url = "http://YOUR_PHONE_IP:8080/shot.jpg"
         # Testing accessibility of the mobile camera URL
         if not test_mobile_camera(url):
             # Preparing error message for inaccessible mobile camera
