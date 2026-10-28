@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Object Detection System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            animation: slideUp 0.8s ease-out;
+        }
+
+        .video-section {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .video-container {
+            position: relative;
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        #videoStream {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 15px;
+        }
+
+        .video-placeholder {
+            width: 100%;
+            padding: 100px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: #666;
+            font-size: 1.2rem;
+        }
+
+        .video-placeholder svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f12711 0%, #f5af19 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #434343 0%, #000000 100%);
+            color: white;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+
+        .status-active {
+            background: #4caf50;
+        }
+
+        .status-inactive {
+            background: #f44336;
+        }
+
+        .detection-item {
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .detection-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .detection-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .detection-meta {
+            font-size: 0.85rem;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .history-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .history-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .history-list::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #667eea;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .settings-row:last-child {
+            border-bottom: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .camera-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .camera-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .camera-btn.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Smart Object Detection System</h1>
+            <p>Real-time AI-powered object recognition with voice interaction</p>
+        </div>
+
+        <div class="main-grid">
+            <!-- Video Section -->
+            <div class="video-section">
+                <div class="camera-selector">
+                    <button class="camera-btn active" onclick="selectCamera('laptop')">
+                        💻 Laptop Camera
+                    </button>
+                    <button class="camera-btn" onclick="selectCamera('mobile')">
+                        📱 Mobile Camera
+                    </button>
+                </div>
+
+                <div class="video-container" id="videoContainer">
+                    <div class="video-placeholder" id="placeholder">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        <p>Camera not active</p>
+                        <p style="font-size: 0.9rem; margin-top: 10px; opacity: 0.7;">
+                            Click "Start Camera" to begin detection
+                        </p>
+                    </div>
+                    <img id="videoStream" style="display: none;" src="" alt="Video Stream">
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-success" id="startBtn" onclick="startCamera()">
+                        ▶️ Start Camera
+                    </button>
+                    <button class="btn btn-danger" id="stopBtn" onclick="stopCamera()" style="display: none;">
+                        ⏹️ Stop Camera
+                    </button>
+                    <button class="btn btn-secondary" onclick="toggleFullscreen()">
+                        ⛶ Fullscreen
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Status Card -->
+                <div class="card">
+                    <h2>
+                        <span class="status-indicator status-inactive" id="statusIndicator"></span>
+                        System Status
+                    </h2>
+                    <div class="settings-row">
+                        <span>Voice Control</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked id="voiceToggle" onchange="toggleVoice()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="settings-row">
+                        <span>Camera: <strong id="cameraType">Laptop</strong></span>
+                    </div>
+                </div>
+
+                <!-- Statistics Card -->
+                <div class="card">
+                    <h2>📊 Statistics</h2>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-value" id="totalObjects">0</div>
+                            <div class="stat-label">Objects Detected</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="uniqueTypes">0</div>
+                            <div class="stat-label">Unique Types</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Detections -->
+                <div class="card">
+                    <h2>🔍 Current Detections</h2>
+                    <div class="history-list" id="currentDetections">
+                        <div class="empty-state">
+                            <p>No objects detected yet</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detection History -->
+                <div class="card">
+                    <h2>📝 Detection History</h2>
+                    <div class="history-list" id="historyList">
+                        <div class="empty-state">
+                            <p>History will appear here</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let detectionHistory = [];
+        let currentCamera = 'laptop';
+        let isRunning = false;
+
+        function showToast(message) {
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        async function startCamera() {
+            try {
+                const response = await fetch('/api/start_camera', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    isRunning = true;
+                    document.getElementById('placeholder').style.display = 'none';
+                    document.getElementById('videoStream').style.display = 'block';
+                    document.getElementById('videoStream').src = '/video_feed';
+                    document.getElementById('startBtn').style.display = 'none';
+                    document.getElementById('stopBtn').style.display = 'flex';
+                    document.getElementById('statusIndicator').className = 'status-indicator status-active';
+
+                    showToast('Camera started successfully! 🎥');
+                    startDetectionUpdates();
+                }
+            } catch (error) {
+                showToast('Error starting camera: ' + error.message);
+            }
+        }
+
+        async function stopCamera() {
+            try {
+                const response = await fetch('/api/stop_camera', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    isRunning = false;
+                    document.getElementById('placeholder').style.display = 'flex';
+                    document.getElementById('videoStream').style.display = 'none';
+                    document.getElementById('videoStream').src = '';
+                    document.getElementById('startBtn').style.display = 'flex';
+                    document.getElementById('stopBtn').style.display = 'none';
+                    document.getElementById('statusIndicator').className = 'status-indicator status-inactive';
+
+                    showToast('Camera stopped ⏹️');
+                }
+            } catch (error) {
+                showToast('Error stopping camera: ' + error.message);
+            }
+        }
+
+        async function selectCamera(type) {
+            currentCamera = type;
+            document.querySelectorAll('.camera-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            document.getElementById('cameraType').textContent =
+                type === 'laptop' ? 'Laptop' : 'Mobile';
+
+            try {
+                const response = await fetch('/api/switch_camera', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ camera: type })
+                });
+                const data = await response.json();
+                showToast(`Switched to ${type} camera`);
+            } catch (error) {
+                showToast('Error switching camera: ' + error.message);
+            }
+        }
+
+        async function toggleVoice() {
+            try {
+                const response = await fetch('/api/toggle_voice', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                showToast(data.voice_active ? 'Voice enabled 🔊' : 'Voice disabled 🔇');
+            } catch (error) {
+                showToast('Error toggling voice: ' + error.message);
+            }
+        }
+
+        function toggleFullscreen() {
+            const videoContainer = document.getElementById('videoContainer');
+            if (!document.fullscreenElement) {
+                videoContainer.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        async function updateDetections() {
+            if (!isRunning) return;
+
+            try {
+                const response = await fetch('/api/detections');
+                const data = await response.json();
+
+                // Update statistics
+                document.getElementById('totalObjects').textContent = data.total_objects;
+                document.getElementById('uniqueTypes').textContent = data.unique_types;
+
+                // Update current detections
+                const currentDiv = document.getElementById('currentDetections');
+                if (data.detections.length === 0) {
+                    currentDiv.innerHTML = '<div class="empty-state"><p>No objects detected</p></div>';
+                } else {
+                    currentDiv.innerHTML = data.detections.map(det => `
+                        <div class="detection-item">
+                            <div class="detection-label">${det.label}</div>
+                            <div class="detection-meta">
+                                <span>Position: ${det.position}</span>
+                                <span>Confidence: ${(det.confidence * 100).toFixed(0)}%</span>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    // Add to history
+                    data.detections.forEach(det => {
+                        if (!detectionHistory.find(h => h.label === det.label && h.timestamp === det.timestamp)) {
+                            detectionHistory.unshift(det);
+                        }
+                    });
+
+                    // Limit history
+                    if (detectionHistory.length > 10) {
+                        detectionHistory = detectionHistory.slice(0, 10);
+                    }
+
+                    // Update history display
+                    const historyDiv = document.getElementById('historyList');
+                    historyDiv.innerHTML = detectionHistory.map(det => `
+                        <div class="detection-item">
+                            <div class="detection-label">${det.label}</div>
+                            <div class="detection-meta">
+                                <span>${det.timestamp}</span>
+                                <span>${(det.confidence * 100).toFixed(0)}%</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error updating detections:', error);
+            }
+        }
+
+        function startDetectionUpdates() {
+            setInterval(updateDetections, 1000); // Update every second
+        }
+
+        // Show welcome message
+        setTimeout(() => {
+            showToast('👋 Welcome! Click "Start Camera" to begin detection');
+        }, 1000);
+    </script>
+</body>
+</html>
